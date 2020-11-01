@@ -1,6 +1,7 @@
 import os
 import shutil
 import numpy
+import datetime
 
 from input_manager import InputManager
 from output_manager import OutputManager
@@ -64,9 +65,45 @@ class Backup:
         
         return new_files_paths
     
+        # list_subfolders_with_paths = [f.path for f in os.scandir(path) if f.is_dir()]
+        # list_files_with_paths = [f.path for f in os.scandir(path) if f.is_file()]
+
+        # for p in list_subfolders_with_paths:
+        #     stat = os.stat(p)
+        #     mod_date = datetime.datetime.fromtimestamp(stat.st_mtime)
+        #     print(mod_date)
+        
+        # for paths in output_paths:
+
     def get_modified_folders(self, input_folder, output_folder):
-        # dive into folder
-        x = 3
+        folder_input = [f.path for f in os.scandir(input_folder) if f.is_dir()]
+        folder_output = [f.path for f in os.scandir(output_folder) if f.is_dir()]
+
+        # stat tuple - (folderName, modifiedTime)
+
+        input_stats = []
+        for p in folder_input:
+            stat = (p[len(input_folder):], os.stat(p).st_mtime)
+            input_stats.append(stat)
+
+        output_stats = []
+        for p in folder_output:
+            stat = (p[len(output_folder):], os.stat(p).st_mtime)
+            output_stats.append(stat)
+        
+        modified_folders = []
+        for in_stat in input_stats:
+            out_stat = next((x for x in output_stats if x[0] == in_stat[0]), None)
+
+            if out_stat is None:
+                print('ERR - Could not find matching folder: {}'.format(in_stat[0]))
+                continue
+            
+            if in_stat[1] > out_stat[1]:
+                modified_folders.append("{}{}".format(input_folder, in_stat[0]))
+        
+        return modified_folders
+        
     
     def get_modified_files(self, input_folder, output_folder):
         # copy file
@@ -122,19 +159,7 @@ class Backup:
         path = "D:\\Program Files\\World of Warcraft\\_retail_\\Interface\\addons"
         ipt = "C:\\Users\\Povel Galfvensjö\\Desktop\\test_folder\\input\\"
         opt = "C:\\Users\\Povel Galfvensjö\\Desktop\\test_folder\\output\\"
-        print(self.get_new_files(ipt, opt))
-        print(self.get_new_folders(ipt, opt))
-
-        # list_subfolders_with_paths = [f.path for f in os.scandir(path) if f.is_dir()]
-        # list_files_with_paths = [f.path for f in os.scandir(path) if f.is_file()]
-
-        # for p in list_subfolders_with_paths:
-        #     stat = os.stat(p)
-        #     mod_date = datetime.datetime.fromtimestamp(stat.st_mtime)
-        #     print(mod_date)
-        
-        # for paths in output_paths:
-
+        print(self.get_modified_folders(ipt, opt))
 
 
 if __name__ == '__main__':
