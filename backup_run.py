@@ -29,12 +29,40 @@ class Backup:
         self.output_paths = outputManager.get_paths()
     
     def get_new_folders(self, input_folder, output_folder):
-        # copy entire folder
-        x = 3
+        folder_input = get_cleaned_folder_paths(input_folder)
+        folder_output = get_cleaned_folder_paths(output_folder)
+
+        new_folders = numpy.setdiff1d(folder_input, folder_output)
+
+        if len(new_folders) <= 0:
+            return None
+        
+        new_folder_paths = []
+        print("\nNew folders")
+        for fol in new_folders:
+            print("New folder - {}".format(fol))
+            new_folder_paths.append("{}{}".format(input_folder, fol))
+        
+        return new_folder_paths
+
+        
 
     def get_new_files(self, input_folder, output_folder):
-        # copy file
-        x = 3
+        files_input = get_cleaned_file_paths(input_folder)
+        files_output = get_cleaned_file_paths(output_folder)
+
+        new_files = numpy.setdiff1d(files_input, files_output)
+
+        if len(new_files) <= 0:
+            return None
+        
+        new_files_paths = []
+        print("\nNew files")
+        for fil in new_files:
+            print("New file - {}".format(fil))
+            new_files_paths.append("{}{}".format(input_folder, fil))
+        
+        return new_files_paths
     
     def get_modified_folders(self, input_folder, output_folder):
         # dive into folder
@@ -60,7 +88,7 @@ class Backup:
         if len(deleted_folders) <= 0:
             return False
 
-        print('\nDeleted')
+        print("\nDeleted")
         for fol in deleted_folders:
             print("Deleted - {}".format(fol))
             shutil.rmtree("{}{}".format(output_folder, fol))
@@ -83,7 +111,7 @@ class Backup:
         if len(deleted_files) <= 0:
             return False
 
-        print('\nDeleted')
+        print("\nDeleted")
         for fil in deleted_files:
             print("Deleted - {}".format(fil))
             os.remove("{}{}".format(output_folder, fil))
@@ -94,8 +122,8 @@ class Backup:
         path = "D:\\Program Files\\World of Warcraft\\_retail_\\Interface\\addons"
         ipt = "C:\\Users\\Povel Galfvensjö\\Desktop\\test_folder\\input\\"
         opt = "C:\\Users\\Povel Galfvensjö\\Desktop\\test_folder\\output\\"
-        print(self.remove_deleted_files(ipt, opt))
-        print(self.remove_deleted_folders(ipt, opt))
+        print(self.get_new_files(ipt, opt))
+        print(self.get_new_folders(ipt, opt))
 
         # list_subfolders_with_paths = [f.path for f in os.scandir(path) if f.is_dir()]
         # list_files_with_paths = [f.path for f in os.scandir(path) if f.is_file()]
