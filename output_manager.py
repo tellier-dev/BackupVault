@@ -11,23 +11,23 @@ class OutputManager:
             except IOError:
                 print("Unhandled IO Error")
 
-    def add_path(self, path):
+    def add_path(self, path, name):
         doc = open(self.__file_path, 'a')
-        doc.write(path + "\n")
+        doc.write("Name:{} | Path:{}".format(name, path) + "\n")
         doc.close()
+        print("-- Name : {} | Path : {}".format(name, path))
 
     def remove_path(self, path):
-        print(path)
         doc = open(self.__file_path, 'r')
         paths = doc.readlines()
         doc.close()
 
         removed = False
         for p in paths:
-            print('Paths in list: {}'.format(p))
-            if p.strip() == path:
+            if p[p.index('| Path:') + 7:] == path:
                 removed = True
                 path = p
+                break
 
         if not removed:
             print("> Could not find path <")
@@ -50,3 +50,13 @@ class OutputManager:
         for path in paths:
             print(path)
         doc.close()
+
+    def get_paths(self):
+        doc = open(self.__file_path, 'r')
+        doc_paths = doc.readlines()
+        doc.close()
+        paths = []
+        for path in doc_paths:
+            if len(path) > 3:
+                paths.append(path[path.index('| Path:' + 7)])
+        return paths

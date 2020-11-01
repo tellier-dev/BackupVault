@@ -15,6 +15,7 @@ class InputManager:
         doc = open(self.__file_path, 'a')
         doc.write(path + "\n")
         doc.close()
+        print("-- Path : {}".format(path))
 
     def remove_path(self, path):
         doc = open(self.__file_path, 'r')
@@ -47,3 +48,13 @@ class InputManager:
         for path in paths:
             print(path)
         doc.close()
+
+    def get_paths(self):
+        doc = open(self.__file_path, 'r')
+        doc_paths = doc.readlines()
+        doc.close()
+        paths = []
+        for path in doc_paths:
+            if len(path) > 3:
+                paths.append(path.strip())
+        return paths

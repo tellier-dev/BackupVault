@@ -1,6 +1,10 @@
 import sys
+import os
+import datetime
+
 from input_manager import InputManager
 from output_manager import OutputManager
+from backup_run import Backup
 
 
 def documentation():
@@ -8,9 +12,10 @@ def documentation():
     print("-- Add a path to the input directory")
     print("-- Path to folder (without braces) e.g C:/Users/Pictures")
 
-    print("\noutput add {path}")
-    print("-- Add a path to the output directory")
-    print("-- Path to folder (without braces) e.g C:/Users/Pictures")
+    print("\noutput add {name} {path}")
+    print("-- Add and name a path to the output directory")
+    print("-- Name of the new directory [NO SPACES] (without braces) e.g 'Pictures'")
+    print("-- Path to folder (without braces) e.g 'C:/Users/Pictures'")
 
     print("\ninput list")
     print("-- List current input directories")
@@ -44,6 +49,8 @@ if __name__ == '__main__':
     print("\nexit\n-- To exit")
     print("\nhelp\n-- For command documentation")
 
+    # backup = Backup()
+    # backup.run()
     while True:
         print("\nEnter command: ", end='')
         command = input().strip()
@@ -56,7 +63,9 @@ if __name__ == '__main__':
         elif command.startswith("input add"):
             inputManager.add_path(command[9:].strip())
         elif command.startswith("output add"):
-            outputManager.add_path(command[10:].strip())
+            name = command[11:11 + command[11:].index(' ')]
+            path = command[11 + len(name) + 1:]
+            outputManager.add_path(path, name)
         elif command.startswith("input remove"):
             inputManager.remove_path(command[12:].strip())
         elif command.startswith("output remove"):
