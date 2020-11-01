@@ -15,6 +15,7 @@ class InputManager:
         doc = open(self.__file_path, 'a')
         doc.write(path + "\n")
         doc.close()
+        print("-- Path : {}".format(path))
 
     def remove_path(self, path):
         doc = open(self.__file_path, 'r')
