@@ -1,6 +1,10 @@
 import sys
+import os
+import datetime
+
 from input_manager import InputManager
 from output_manager import OutputManager
+from backup_run import Backup
 
 
 def documentation():
@@ -44,7 +48,9 @@ if __name__ == '__main__':
     print("\nexit\n-- To exit")
     print("\nhelp\n-- For command documentation")
 
-    while True:
+    backup = Backup()
+    backup.run()
+    while False:
         print("\nEnter command: ", end='')
         command = input().strip()
 
