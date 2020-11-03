@@ -58,5 +58,10 @@ class OutputManager:
         paths = []
         for path in doc_paths:
             if len(path) > 3:
-                paths.append(path[path.index('| Path:' + 7)])
+                index = path.index('| Path:') + 7
+                paths.append(path[index:])
         return paths
+
+    def has_paths(self):
+        paths = self.get_paths()
+        return paths is not None and len(paths) > 0
