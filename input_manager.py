@@ -58,3 +58,7 @@ class InputManager:
             if len(path) > 3:
                 paths.append(path.strip())
         return paths
+    
+    def has_paths(self):
+        paths = self.get_paths()
+        return paths is not None and len(paths) > 0
