@@ -2,6 +2,7 @@ import os
 import shutil
 import numpy
 import datetime
+from distutils import dir_util
 
 from input_manager import InputManager
 from output_manager import OutputManager
@@ -24,12 +25,12 @@ def get_cleaned_file_paths(parent):
 class Backup:
     def __init__(self):
         inputManager = InputManager()
-        self.input_paths = inputManager.get_paths()
+        self.input_dirs = inputManager.get_paths()
 
         outputManager = OutputManager()
-        self.output_paths = outputManager.get_paths()
+        self.output_dirs = outputManager.get_paths()
     
-    def get_new_folders(self, input_folder, output_folder):
+    def move_new_folders(self, input_folder, output_folder):
         folder_input = get_cleaned_folder_paths(input_folder)
         folder_output = get_cleaned_folder_paths(output_folder)
 
@@ -38,17 +39,16 @@ class Backup:
         if len(new_folders) <= 0:
             return None
         
+        # tuple (full_path, folder_name)
+
         new_folder_paths = []
-        print("\nNew folders")
         for fol in new_folders:
-            print("New folder - {}".format(fol))
-            new_folder_paths.append("{}{}".format(input_folder, fol))
+            new_folder_paths.append(("{}{}".format(input_folder, fol), fol))
         
-        return new_folder_paths
+        for fol in new_folder_paths:
+            shutil.copytree(fol[0], output_folder + fol[1])      
 
-        
-
-    def get_new_files(self, input_folder, output_folder):
+    def move_new_files(self, input_folder, output_folder):
         files_input = get_cleaned_file_paths(input_folder)
         files_output = get_cleaned_file_paths(output_folder)
 
@@ -58,12 +58,11 @@ class Backup:
             return None
         
         new_files_paths = []
-        print("\nNew files")
         for fil in new_files:
-            print("New file - {}".format(fil))
             new_files_paths.append("{}{}".format(input_folder, fil))
-        
-        return new_files_paths
+
+        for fil in new_files_paths:
+            shutil.copy2(fil, output_folder)
 
     def get_modified_folders(self, input_folder, output_folder):
         folder_input = [f.path for f in os.scandir(input_folder) if f.is_dir()]
@@ -90,12 +89,12 @@ class Backup:
                 continue
             
             if in_stat[1] > out_stat[1]:
-                modified_folders.append("{}{}".format(input_folder, in_stat[0]))
+                modified_folders.append(("{}{}\\".format(input_folder, in_stat[0]), "{}{}\\".format(output_folder, out_stat[0])))
         
         return modified_folders
         
     
-    def get_modified_files(self, input_folder, output_folder):
+    def move_modified_files(self, input_folder, output_folder):
         files_input = [f.path for f in os.scandir(input_folder) if f.is_file()]
         files_output = [f.path for f in os.scandir(output_folder) if f.is_file()]
 
@@ -122,45 +121,83 @@ class Backup:
             if in_stat[1] > out_stat[1]:
                 modified_files.append("{}{}".format(input_folder, in_stat[0]))
         
-        return modified_files
+        for fil in modified_files:
+            shutil.copy2(fil, output_folder)
     
-    def remove_deleted_folders(self, input_folder, output_folder):
+    def remove_deleted_folders(self, input_folder, output_folder, delete):
         folder_input = get_cleaned_folder_paths(input_folder)
         folder_output = get_cleaned_folder_paths(output_folder)
 
         deleted_folders = numpy.setdiff1d(folder_output, folder_input)
 
         if len(deleted_folders) <= 0:
-            return False
+            return False if delete else None
 
-        print("\nDeleted")
+        folders_for_removal = []
         for fol in deleted_folders:
-            print("Deleted - {}".format(fol))
-            shutil.rmtree("{}{}".format(output_folder, fol))
+            folders_for_removal.append("{}{}".format(output_folder, fol))
 
-        return True
+        if not delete:
+            return folders_for_removal
 
-    def remove_deleted_files(self, input_folder, output_folder):
+        for fol in folders_for_removal:
+            shutil.rmtree(fol)
+
+    def remove_deleted_files(self, input_folder, output_folder, delete):
         files_input = get_cleaned_file_paths(input_folder)
         files_output = get_cleaned_file_paths(output_folder)
 
         deleted_files = numpy.setdiff1d(files_output, files_input)
 
         if len(deleted_files) <= 0:
-            return False
+            return False if delete else None
 
-        print("\nDeleted")
+        files_for_removal = []
         for fil in deleted_files:
-            print("Deleted - {}".format(fil))
-            os.remove("{}{}".format(output_folder, fil))
+            files_for_removal.append("{}{}".format(output_folder, fil))
 
-        return True
+        if not delete:
+            return files_for_removal
+        
+        for fil in files_for_removal:
+            os.remove(fil)
+    
+    def print_path_list(self, tag, path_list):
+        if path_list is None or len(path_list) <= 0:
+            return
+
+        for path in path_list:
+            print("{}: {}".format(tag, path))
+    
+    def parse_folders(self, in_folder, out_folder):
+        # Remove right away
+        self.remove_deleted_files(in_folder, out_folder, True)
+        self.remove_deleted_folders(in_folder, out_folder, True)
+        
+        # Add right away
+        self.move_new_files(in_folder, out_folder)
+        self.move_new_folders(in_folder, out_folder)
+        self.move_modified_files(in_folder, out_folder)
+
+        modified_folders = self.get_modified_folders(in_folder, out_folder)
+
+        if (len(modified_folders) <= 0):
+            return
+        
+        # Dive into modified folders
+        for folder in modified_folders:
+            self.parse_folders(folder[0], folder[1])
+
+
+
     
     def run(self):
-        path = "D:\\Program Files\\World of Warcraft\\_retail_\\Interface\\addons"
-        ipt = "C:\\Users\\Povel Galfvensjö\\Desktop\\test_folder\\input\\"
-        opt = "C:\\Users\\Povel Galfvensjö\\Desktop\\test_folder\\output\\"
-        print(self.get_modified_folders(ipt, opt))
+        for out_dir in self.output_dirs:
+            for in_dir in self.input_dirs:
+                print("Backup of | Src: {} | Dest: {}".format(in_dir, out_dir))
+                self.parse_folders(in_dir, out_dir)
+        
+        print("\nBackup successful")
 
 
 if __name__ == '__main__':
