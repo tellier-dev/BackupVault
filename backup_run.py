@@ -24,11 +24,14 @@ def get_cleaned_file_paths(parent):
 
 class Backup:
     def __init__(self):
-        inputManager = InputManager()
-        self.input_dirs = inputManager.get_paths()
+        self.inputManager = InputManager()
+        self.outputManager = OutputManager()
 
-        outputManager = OutputManager()
-        self.output_dirs = outputManager.get_paths()
+        self.created_backup = False
+    
+    def load_dirs(self):
+        self.input_dirs = self.inputManager.get_paths()
+        self.output_dirs = self.outputManager.get_paths()
     
     def move_new_folders(self, input_folder, output_folder):
         folder_input = get_cleaned_folder_paths(input_folder)
@@ -39,6 +42,8 @@ class Backup:
         if len(new_folders) <= 0:
             return None
         
+        self.created_backup = True
+        
         # tuple (full_path, folder_name)
 
         new_folder_paths = []
@@ -46,6 +51,7 @@ class Backup:
             new_folder_paths.append(("{}{}".format(input_folder, fol), fol))
         
         for fol in new_folder_paths:
+            print("Moving {}...".format(fol[0]))
             shutil.copytree(fol[0], output_folder + fol[1])      
 
     def move_new_files(self, input_folder, output_folder):
@@ -57,11 +63,14 @@ class Backup:
         if len(new_files) <= 0:
             return None
         
+        self.created_backup = True
+        
         new_files_paths = []
         for fil in new_files:
             new_files_paths.append("{}{}".format(input_folder, fil))
 
         for fil in new_files_paths:
+            print("Moving {}...".format(fil))
             shutil.copy2(fil, output_folder)
 
     def get_modified_folders(self, input_folder, output_folder):
@@ -121,7 +130,13 @@ class Backup:
             if in_stat[1] > out_stat[1]:
                 modified_files.append("{}{}".format(input_folder, in_stat[0]))
         
+        if len(modified_files) <= 0:
+            return
+
+        self.created_backup = True
+
         for fil in modified_files:
+            print("Moving {}...".format(fil))
             shutil.copy2(fil, output_folder)
     
     def remove_deleted_folders(self, input_folder, output_folder, delete):
@@ -140,7 +155,13 @@ class Backup:
         if not delete:
             return folders_for_removal
 
+        if len(folders_for_removal) <= 0:
+            return
+        
+        self.created_backup = True
+
         for fol in folders_for_removal:
+            print("Removing {}...".format(fol))
             shutil.rmtree(fol)
 
     def remove_deleted_files(self, input_folder, output_folder, delete):
@@ -159,7 +180,13 @@ class Backup:
         if not delete:
             return files_for_removal
         
+        if len(files_for_removal) <= 0:
+            return
+        
+        self.created_backup = True
+        
         for fil in files_for_removal:
+            print("Removing {}...".format(fil))
             os.remove(fil)
     
     def print_path_list(self, tag, path_list):
@@ -192,12 +219,17 @@ class Backup:
 
     
     def run(self):
+        self.load_dirs()
         for out_dir in self.output_dirs:
             for in_dir in self.input_dirs:
                 print("Backup of | Src: {} | Dest: {}".format(in_dir, out_dir))
                 self.parse_folders(in_dir, out_dir)
         
-        print("\nBackup successful")
+        if self.created_backup is not True:
+            print("\nNo changes detected")
+        else:
+            print("\nBackup successful")
+            self.created_backup = False
 
 
 if __name__ == '__main__':
