@@ -13,9 +13,9 @@ class OutputManager:
 
     def add_path(self, path, name):
         doc = open(self.__file_path, 'a')
-        doc.write("Name:{} | Path:{}".format(name, path) + "\n")
+        doc.write("Name:{} | Path:{}\n".format(name, path))
         doc.close()
-        print("-- Name : {} | Path : {}".format(name, path))
+        print("-- Name: {} | Path: {}".format(name, path))
 
     def remove_path(self, path):
         doc = open(self.__file_path, 'r')
@@ -48,7 +48,7 @@ class OutputManager:
         paths = doc.readlines()
         print()
         for path in paths:
-            print(path)
+            print("Path: {}".format(path))
         doc.close()
 
     def get_paths(self):
@@ -57,9 +57,9 @@ class OutputManager:
         doc.close()
         paths = []
         for path in doc_paths:
-            if len(path) > 3:
-                index = path.index('| Path:') + 7
-                paths.append(path[index:])
+            path = path.replace('\n', '')
+            index = path.index('| Path:') + 7
+            paths.append(path[index:])
         return paths
 
     def has_paths(self):

@@ -46,7 +46,7 @@ class InputManager:
         paths = doc.readlines()
         print()
         for path in paths:
-            print(path)
+            print("Path: {}".format(path))
         doc.close()
 
     def get_paths(self):
@@ -55,8 +55,8 @@ class InputManager:
         doc.close()
         paths = []
         for path in doc_paths:
-            if len(path) > 3:
-                paths.append(path.strip())
+            path = path.replace('\n', '')
+            paths.append(path.strip())
         return paths
     
     def has_paths(self):
