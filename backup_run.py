@@ -90,6 +90,7 @@ class Backup:
             output_stats.append(stat)
         
         modified_folders = []
+        unmodified_folders = []
         for in_stat in input_stats:
             out_stat = next((x for x in output_stats if x[0] == in_stat[0]), None)
 
@@ -99,8 +100,10 @@ class Backup:
             
             if in_stat[1] > out_stat[1]:
                 modified_folders.append(("{}{}\\".format(input_folder, in_stat[0]), "{}{}\\".format(output_folder, out_stat[0])))
+            else:
+                unmodified_folders.append(("{}{}\\".format(input_folder, in_stat[0]), "{}{}\\".format(output_folder, out_stat[0])))
         
-        return modified_folders
+        return (modified_folders, unmodified_folders)
         
     
     def move_modified_files(self, input_folder, output_folder):
@@ -206,16 +209,19 @@ class Backup:
         self.move_new_folders(in_folder, out_folder)
         self.move_modified_files(in_folder, out_folder)
 
-        modified_folders = self.get_modified_folders(in_folder, out_folder)
+        folders = self.get_modified_folders(in_folder, out_folder)
 
-        if (len(modified_folders) <= 0):
+        if (len(folders) <= 0):
             return
         
         # Dive into modified folders
-        for folder in modified_folders:
-            self.parse_folders(folder[0], folder[1])
-
-
+        for modified in folders[0]:
+            self.parse_folders(modified[0], modified[1])
+        # Dive into unmodified folders
+        # NTFS file systems have a lazy update feature, so folder modified date does not reflect the latest changes in subdirectories
+        # FAT file systems don't support update features for folders at all, meaning folders never reflect changes in subdirectories
+        for unmodified in folders[1]:
+            self.parse_folders(unmodified[0], unmodified[1])
 
     
     def run(self):
