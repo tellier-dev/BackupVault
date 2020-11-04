@@ -69,7 +69,7 @@ if __name__ == '__main__':
             if not inputManager.has_paths() or not outputManager.has_paths():
                 print("Missing input and/or output paths")
             else:
-                backup.run()
+                backup.run(True)
         elif command == "help":
             documentation()
         elif command.startswith("input add"):
