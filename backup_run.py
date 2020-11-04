@@ -205,6 +205,8 @@ class Backup:
             self.terminal_print("{}: {}".format(tag, path))
     
     def parse_folders(self, in_folder, out_folder):
+        if not os.path.exists(out_folder):
+            os.mkdir(out_folder)
         self.remove_deleted_files(in_folder, out_folder, True)
         self.remove_deleted_folders(in_folder, out_folder, True)
         
@@ -234,9 +236,10 @@ class Backup:
             self.terminal = True
         for out_dir in self.output_dirs:
             for in_dir in self.input_dirs:
+                out_dir_with_name = "{}\\{}".format(out_dir, self.inputManager.get_name_from_root_path(in_dir))
                 self.terminal_print("\nFrom src: {}".format(in_dir))
                 self.terminal_print("To dest: {}".format(out_dir))
-                self.parse_folders(in_dir, out_dir)
+                self.parse_folders(in_dir, out_dir_with_name)
         
         if self.created_backup is not True:
             self.terminal_print("\nNo changes detected")
