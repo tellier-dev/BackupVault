@@ -11,11 +11,11 @@ class OutputManager:
             except IOError:
                 print("Unhandled IO Error")
 
-    def add_path(self, path, name):
+    def add_path(self, path):
         doc = open(self.__file_path, 'a')
-        doc.write("Name:{} | Path:{}\n".format(name, path))
+        doc.write(path + "\n")
         doc.close()
-        print("-- Name: {} | Path: {}".format(name, path))
+        print("-- Path : {}".format(path))
 
     def remove_path(self, path):
         doc = open(self.__file_path, 'r')
@@ -26,7 +26,6 @@ class OutputManager:
         for p in paths:
             if p[p.index('| Path:') + 7:] == path:
                 removed = True
-                path = p
                 break
 
         if not removed:
@@ -41,6 +40,7 @@ class OutputManager:
 
     def clear(self):
         doc = open(self.__file_path, 'w')
+        print("Output dirs have been removed.")
         doc.close()
 
     def list(self):
@@ -58,8 +58,7 @@ class OutputManager:
         paths = []
         for path in doc_paths:
             path = path.replace('\n', '')
-            index = path.index('| Path:') + 7
-            paths.append(path[index:])
+            paths.append(path.strip())
         return paths
 
     def has_paths(self):

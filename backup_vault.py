@@ -11,13 +11,14 @@ def documentation():
     print("\ninit backup")
     print("-- Creates a new backup")
 
-    print("\ninput add {path}")
+    print("\ninput add {name} {path}")
     print("-- Add a path to the input directory")
+    print("-- Name of the destination directory [NO SPACES] (without braces) e.g 'Pictures'")
+    print("   -- If null, input dirs will simply be moved to the output dir with no specified subfolder")
     print("-- Path to folder (without braces) e.g C:/Users/Pictures")
 
-    print("\noutput add {name} {path}")
+    print("\noutput add {path}")
     print("-- Add and name a path to the output directory")
-    print("-- Name of the new directory [NO SPACES] (without braces) e.g 'Pictures'")
     print("-- Path to folder (without braces) e.g 'C:/Users/Pictures'")
 
     print("\ninput list")
@@ -69,15 +70,15 @@ if __name__ == '__main__':
             if not inputManager.has_paths() or not outputManager.has_paths():
                 print("Missing input and/or output paths")
             else:
-                backup.run()
+                backup.run(True)
         elif command == "help":
             documentation()
         elif command.startswith("input add"):
-            inputManager.add_path(command[9:].strip())
+            name = command[10:10 + command[10:].index(' ')]
+            path = command[10 + len(name) + 1:]
+            inputManager.add_path(path, name)
         elif command.startswith("output add"):
-            name = command[11:11 + command[11:].index(' ')]
-            path = command[11 + len(name) + 1:]
-            outputManager.add_path(path, name)
+            outputManager.add_path(command[11:].strip())
         elif command.startswith("input remove"):
             inputManager.remove_path(command[12:].strip())
         elif command.startswith("output remove"):
@@ -90,3 +91,5 @@ if __name__ == '__main__':
             inputManager.list()
         elif command.startswith("output list"):
             outputManager.list()
+        else:
+            print("Unknown input. Type 'help' for help")

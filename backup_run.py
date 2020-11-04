@@ -28,10 +28,15 @@ class Backup:
         self.outputManager = OutputManager()
 
         self.created_backup = False
+        self.terminal = False
     
     def load_dirs(self):
         self.input_dirs = self.inputManager.get_paths()
         self.output_dirs = self.outputManager.get_paths()
+    
+    def terminal_print(self, text):
+        if self.terminal:
+            print(text)
     
     def move_new_folders(self, input_folder, output_folder):
         folder_input = get_cleaned_folder_paths(input_folder)
@@ -51,7 +56,7 @@ class Backup:
             new_folder_paths.append(("{}{}".format(input_folder, fol), fol))
         
         for fol in new_folder_paths:
-            print("Moving {}...".format(fol[0]))
+            self.terminal_print("Moving {}...".format(fol[0]))
             shutil.copytree(fol[0], output_folder + fol[1])      
 
     def move_new_files(self, input_folder, output_folder):
@@ -70,7 +75,7 @@ class Backup:
             new_files_paths.append("{}{}".format(input_folder, fil))
 
         for fil in new_files_paths:
-            print("Moving {}...".format(fil))
+            self.terminal_print("Moving {}...".format(fil))
             shutil.copy2(fil, output_folder)
 
     def get_modified_folders(self, input_folder, output_folder):
@@ -95,7 +100,7 @@ class Backup:
             out_stat = next((x for x in output_stats if x[0] == in_stat[0]), None)
 
             if out_stat is None:
-                print('ERR - Could not find matching folder: {}'.format(in_stat[0]))
+                self.terminal_print('ERR - Could not find matching folder: {}'.format(in_stat[0]))
                 continue
             
             if in_stat[1] > out_stat[1]:
@@ -127,7 +132,7 @@ class Backup:
             out_stat = next((x for x in output_stats if x[0] == in_stat[0]), None)
 
             if out_stat is None:
-                print('ERR - Could not find matching file: {}'.format(in_stat[0]))
+                self.terminal_print('ERR - Could not find matching file: {}'.format(in_stat[0]))
                 continue
             
             if in_stat[1] > out_stat[1]:
@@ -139,7 +144,7 @@ class Backup:
         self.created_backup = True
 
         for fil in modified_files:
-            print("Moving {}...".format(fil))
+            self.terminal_print("Moving {}...".format(fil))
             shutil.copy2(fil, output_folder)
     
     def remove_deleted_folders(self, input_folder, output_folder, delete):
@@ -164,7 +169,7 @@ class Backup:
         self.created_backup = True
 
         for fol in folders_for_removal:
-            print("Removing {}...".format(fol))
+            self.terminal_print("Removing {}...".format(fol))
             shutil.rmtree(fol)
 
     def remove_deleted_files(self, input_folder, output_folder, delete):
@@ -189,7 +194,7 @@ class Backup:
         self.created_backup = True
         
         for fil in files_for_removal:
-            print("Removing {}...".format(fil))
+            self.terminal_print("Removing {}...".format(fil))
             os.remove(fil)
     
     def print_path_list(self, tag, path_list):
@@ -197,14 +202,14 @@ class Backup:
             return
 
         for path in path_list:
-            print("{}: {}".format(tag, path))
+            self.terminal_print("{}: {}".format(tag, path))
     
     def parse_folders(self, in_folder, out_folder):
-        # Remove right away
+        if not os.path.exists(out_folder):
+            os.mkdir(out_folder)
         self.remove_deleted_files(in_folder, out_folder, True)
         self.remove_deleted_folders(in_folder, out_folder, True)
         
-        # Add right away
         self.move_new_files(in_folder, out_folder)
         self.move_new_folders(in_folder, out_folder)
         self.move_modified_files(in_folder, out_folder)
@@ -214,28 +219,35 @@ class Backup:
         if (len(folders) <= 0):
             return
         
+        # NTFS file systems have a lazy update feature, so folder modified date does not reflect the latest changes in subdirectories
+        # FAT file systems don't support update features for folders at all, meaning folders never reflect changes in subdirectories
+
         # Dive into modified folders
         for modified in folders[0]:
             self.parse_folders(modified[0], modified[1])
         # Dive into unmodified folders
-        # NTFS file systems have a lazy update feature, so folder modified date does not reflect the latest changes in subdirectories
-        # FAT file systems don't support update features for folders at all, meaning folders never reflect changes in subdirectories
         for unmodified in folders[1]:
             self.parse_folders(unmodified[0], unmodified[1])
 
     
-    def run(self):
+    def run(self, terminal = False):
         self.load_dirs()
+        if terminal:
+            self.terminal = True
         for out_dir in self.output_dirs:
             for in_dir in self.input_dirs:
-                print("Backup of | Src: {} | Dest: {}".format(in_dir, out_dir))
-                self.parse_folders(in_dir, out_dir)
+                out_dir_with_name = "{}\\{}".format(out_dir, self.inputManager.get_name_from_root_path(in_dir))
+                self.terminal_print("\nFrom src: {}".format(in_dir))
+                self.terminal_print("To dest: {}".format(out_dir))
+                self.parse_folders(in_dir, out_dir_with_name)
         
         if self.created_backup is not True:
-            print("\nNo changes detected")
+            self.terminal_print("\nNo changes detected")
         else:
-            print("\nBackup successful")
+            self.terminal_print("\nBackup successful")
             self.created_backup = False
+        
+        self.terminal = False
 
 
 if __name__ == '__main__':

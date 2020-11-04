@@ -11,11 +11,12 @@ class InputManager:
             except IOError:
                 print("Unhandled IO Error")
 
-    def add_path(self, path):
+    def add_path(self, path, name):
         doc = open(self.__file_path, 'a')
-        doc.write(path + "\n")
+        doc.write("Name:{} | Path:{}\n".format(name, path))
         doc.close()
-        print("-- Path : {}".format(path))
+        print("-- Name: {} | Path: {}".format(name, path))
+        
 
     def remove_path(self, path):
         doc = open(self.__file_path, 'r')
@@ -24,8 +25,9 @@ class InputManager:
 
         removed = False
         for p in paths:
-            if p == path:
+            if p[p.index('| Path:') + 7:] == path:
                 removed = True
+                break
 
         if not removed:
             print("> Could not find path <")
@@ -39,6 +41,7 @@ class InputManager:
 
     def clear(self):
         doc = open(self.__file_path, 'w')
+        print("Input dirs have been removed.")
         doc.close()
 
     def list(self):
@@ -56,8 +59,21 @@ class InputManager:
         paths = []
         for path in doc_paths:
             path = path.replace('\n', '')
-            paths.append(path.strip())
+            index = path.index('| Path:') + 7
+            paths.append(path[index:])
         return paths
+    
+    def get_name_from_root_path(self, root_path):
+        doc = open(self.__file_path, 'r')
+        doc_paths = doc.readlines()
+        doc.close()
+        for path in doc_paths:
+            path = path.replace('\n', '')
+            index = path.index('| Path:') + 7
+            if root_path == path[index:]:
+                index = path.index(' | Path:')
+                return path[len("Name:"):index]
+        return None
     
     def has_paths(self):
         paths = self.get_paths()
