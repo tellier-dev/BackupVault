@@ -49,7 +49,7 @@ def create_root():
     root.minsize(MIN_WIDTH, MIN_HEIGHT)
     root.maxsize(MAX_WIDTH, MAX_HEIGHT)
 
-    icon_png = Image.open('app_icon_32.png')
+    icon_png = Image.open('./icons/app_icon_32.png')
     app_icon = ImageTk.PhotoImage(icon_png)
     root.iconphoto(False, app_icon)
 
