@@ -1,8 +1,6 @@
 from pathlib import Path
+from directory import Directory
 import json
-
-def inputAsJson(name, path, size=None):
-    return {'name': name, 'path': path}
 
 def dataAsJson(data):
     if data is None:
@@ -23,10 +21,10 @@ class InputManager:
                 json.dump(data, out, indent=4)
 
     def addPath(self, path, name):
-        new_data = inputAsJson(name, path)
+        new_data = Directory(path=path, name=name)
         data = self.getPaths()
         data.append(new_data)
-        self.writeDataToJson(data)
+        self.writeDirectoriesToJson(data)
         print('Path added')
 
     def removePath(self, path):
@@ -41,11 +39,11 @@ class InputManager:
             print("> Could not find path <")
             return
 
-        self.writeDataToJson(data)
+        self.writeDirectoriesToJson(data)
         print('Path has been removed')
 
     def clear(self):
-        self.writeDataToJson(None)
+        self.writeDirectoriesToJson(None)
         print('Input directories have been removed')
 
     def list(self):
@@ -54,34 +52,35 @@ class InputManager:
             print('No directories exist')
             return 
         for directory in dirs:
-            print("Path: {}".format(directory['path']))
+            print("Path: {}".format(directory.path))
 
     def getPaths(self):
         dirs = []
         with open(self.__file_path, 'r') as json_file:
             data = json.load(json_file)
             if data['directories'] is not None and len(data['directories']) > 0:
-                dirs = data['directories']
+                for data_dir in data['directories']:
+                    directory = Directory(dictionary=data_dir)
+                    dirs.append(directory)
         return dirs
     
     def getNameFromRootPath(self, root_path):
-        print('not implemented')
-        # doc = open(self.__file_path, 'r')
-        # doc_paths = doc.readlines()
-        # doc.close()
-        # for path in doc_paths:
-        #     path = path.replace('\n', '')
-        #     index = path.index('| Path:') + 7
-        #     if root_path == path[index:]:
-        #         index = path.index(' | Path:')
-        #         return path[len("Name:"):index]
-        # return None
+        directories = self.getPaths()
+        for directory in directories:
+            if directory.path == root_path:
+                return directory.name
+        print('Could not find root path')
+        return None
     
     def hasPaths(self):
         paths = self.getPaths()
         return paths is not None and len(paths) > 0
 
-    def writeDataToJson(self, data):
+    def writeDirectoriesToJson(self, directories):
+        data = []
+        if directories is not None:
+            for directory in directories:
+                data.append(directory.asJson())
         with open(self.__file_path, 'w') as out:
             json_data = dataAsJson(data)
             json.dump(json_data, out, indent=4)

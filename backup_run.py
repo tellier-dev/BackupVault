@@ -2,6 +2,7 @@ import os
 import shutil
 import numpy
 import datetime
+from directory import Directory
 from distutils import dir_util
 
 from input_manager import InputManager
@@ -31,8 +32,8 @@ class Backup:
         self.terminal = False
     
     def load_dirs(self):
-        self.input_dirs = self.inputManager.get_paths()
-        self.output_dirs = self.outputManager.get_paths()
+        self.input_dirs = self.inputManager.getPaths()
+        self.output_dirs = self.outputManager.getPaths()
     
     def terminal_print(self, text):
         if self.terminal:
@@ -236,10 +237,10 @@ class Backup:
             self.terminal = True
         for out_dir in self.output_dirs:
             for in_dir in self.input_dirs:
-                out_dir_with_name = "{}\\{}".format(out_dir, self.inputManager.get_name_from_root_path(in_dir))
-                self.terminal_print("\nFrom src: {}".format(in_dir))
-                self.terminal_print("To dest: {}".format(out_dir))
-                self.parse_folders(in_dir, out_dir_with_name)
+                out_dir_with_name = "{}\\{}".format(out_dir.path, self.inputManager.getNameFromRootPath(in_dir))
+                self.terminal_print("\nFrom src: {}".format(in_dir.path))
+                self.terminal_print("To dest: {}".format(out_dir.path))
+                self.parse_folders(in_dir.path, out_dir_with_name)
         
         if self.created_backup is not True:
             self.terminal_print("\nNo changes detected")
