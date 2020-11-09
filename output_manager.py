@@ -1,66 +1,74 @@
 from pathlib import Path
+import json
+
+def inputAsJson(path):
+    return {'path': path}
+
+def dataAsJson(data):
+    if data is None:
+        data = []
+    json_data = {}
+    json_data['directories'] = data
+    return json_data
 
 
 class OutputManager:
     def __init__(self):
-        self.__file_path = "output_dirs.txt"
+        self.__file_path = "output.json"
         doc = Path(self.__file_path)
         if not doc.is_file():
-            try:
-                open(self.__file_path, 'x')
-            except IOError:
-                print("Unhandled IO Error")
+            with open(self.__file_path, 'w') as out:
+                data = {}
+                data['directories'] = []
+                json.dump(data, out, indent=4)
 
-    def add_path(self, path):
-        doc = open(self.__file_path, 'a')
-        doc.write(path + "\n")
-        doc.close()
-        print("-- Path : {}".format(path))
+    def addPath(self, path):
+        new_data = inputAsJson(path)
+        data = self.getPaths()
+        data.append(new_data)
+        self.writeDataToJson(data)
+        print('Path added')
 
-    def remove_path(self, path):
-        doc = open(self.__file_path, 'r')
-        paths = doc.readlines()
-        doc.close()
-
+    def removePath(self, path):
         removed = False
-        for p in paths:
-            if p[p.index('| Path:') + 7:] == path:
+        data = self.getPaths()
+        for directory in data:
+            if directory['path'] == path:
+                data.remove(directory)
                 removed = True
-                break
 
         if not removed:
             print("> Could not find path <")
             return
 
-        paths.remove(path)
-        doc = open(self.__file_path, 'w')
-        for p in paths:
-            doc.write(p + "\n")
-        doc.close()
+        self.writeDataToJson(data)
+        print('Path has been removed')
 
     def clear(self):
-        doc = open(self.__file_path, 'w')
-        print("Output dirs have been removed.")
-        doc.close()
+        self.writeDataToJson(None)
+        print('Output directories have been removed')
 
     def list(self):
-        doc = open(self.__file_path, 'r')
-        paths = doc.readlines()
-        print()
-        for path in paths:
-            print("Path: {}".format(path))
-        doc.close()
+        dirs = self.getPaths()
+        if len(dirs) <= 0:
+            print('No directories exist')
+            return 
+        for directory in dirs:
+            print("Path: {}".format(directory['path']))
 
-    def get_paths(self):
-        doc = open(self.__file_path, 'r')
-        doc_paths = doc.readlines()
-        doc.close()
-        paths = []
-        for path in doc_paths:
-            path = path.replace('\n', '')
-            paths.append(path.strip())
-        return paths
+    def getPaths(self):
+        dirs = []
+        with open(self.__file_path, 'r') as json_file:
+            data = json.load(json_file)
+            if data['directories'] is not None and len(data['directories']) > 0:
+                dirs = data['directories']
+        return dirs
 
-    def has_paths(self):
-        paths = self.get_paths()
+    def hasPaths(self):
+        paths = self.getPaths()
         return paths is not None and len(paths) > 0
+    
+    def writeDataToJson(self, data):
+        with open(self.__file_path, 'w') as out:
+            json_data = dataAsJson(data)
+            json.dump(json_data, out, indent=4)

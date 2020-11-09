@@ -67,7 +67,7 @@ if __name__ == '__main__':
             break
         
         if command == "init backup":
-            if not inputManager.has_paths() or not outputManager.has_paths():
+            if not inputManager.hasPaths() or not outputManager.hasPaths():
                 print("Missing input and/or output paths")
             else:
                 backup.run(True)
@@ -76,13 +76,13 @@ if __name__ == '__main__':
         elif command.startswith("input add"):
             name = command[10:10 + command[10:].index(' ')]
             path = command[10 + len(name) + 1:]
-            inputManager.add_path(path, name)
+            inputManager.addPath(path, name)
         elif command.startswith("output add"):
-            outputManager.add_path(command[11:].strip())
+            outputManager.addPath(command[11:].strip())
         elif command.startswith("input remove"):
-            inputManager.remove_path(command[12:].strip())
+            inputManager.removePath(command[12:].strip())
         elif command.startswith("output remove"):
-            outputManager.remove_path(command[13:].strip())
+            outputManager.removePath(command[13:].strip())
         elif command.startswith("input clear"):
             inputManager.clear()
         elif command.startswith("output clear"):

@@ -156,5 +156,5 @@ dmypy.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 
-/input_dirs.txt
-/output_dirs.txt
+/input.json
+/output.json
