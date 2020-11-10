@@ -34,6 +34,13 @@ class Directory:
         obj['size'] = self.size
         return obj
     
+    def asList(self):
+        dirAsList = []
+        dirAsList.append(self.path)
+        dirAsList.append(self.name)
+        dirAsList.append(self.size)
+        return dirAsList
+    
     def hasName(self):
         return self.name != ''
     
